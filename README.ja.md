@@ -1,6 +1,6 @@
 # arimu-framework
 
-🌏 [English](README.md) · [日本語](README.ja.md)
+🌏 [한국어](README.md) · [日本語](README.ja.md)
 
 [EnTT](https://github.com/skypjack/entt) の上に作られた、C++20 向けの小さな **Bevy 風 ECS フレームワーク**。
 システムはただのフリー関数で、何を受け取るかはその引数の *型*
