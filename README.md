@@ -1,5 +1,7 @@
 # arimu-framework
 
+🌏 [English](README.md) · [日本語](README.ja.md)
+
 A small **Bevy-style ECS framework** for C++20, built on [EnTT](https://github.com/skypjack/entt).
 Systems are plain free functions; what they receive is decided by their parameter *types*
 (`Res`, `ResMut`, `Query`, `EventReader`, `EventWriter`, `Commands`). A frame runs systems in a
