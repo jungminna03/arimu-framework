@@ -130,6 +130,31 @@ void Main() {                                      // 당신의 게임이 루프
 완전히 실행 가능한 버전은 [`examples/minimal/Main.cpp`](examples/minimal/Main.cpp) 를,
 전체 가이드는 [`USAGE_FOR_AI.md`](USAGE_FOR_AI.md) 를 참고.
 
+## 부가 유틸리티 — `arimu/Select.hpp` (선택)
+
+ECS와 독립적인 작은 헤더(선택 사항). 게임플레이 전반에서 반복되는 "컨텍스트 위 선택" 패턴을 한 곳에
+모은다: **후보(Options) + 컨텍스트에서 사실을 읽는 평가기 + 픽커**. 스킬 입찰·다이얼로그 게이트·퀘스트
+결산의 유일한 차이는 사실을 읽는 컨텍스트의 *스코프*(엔티티-로컬 vs 월드-글로벌)뿐이라, 그 스코프를
+하나의 키드 접근자 뒤로 숨긴다.
+
+```cpp
+enum class Fact { None, Health, KillsOf, Gold };
+struct Ctx { float value(Fact f, const char* arg = nullptr) const; };   // 사실을 float 으로 해석
+
+Arimu::Cond<Fact> conds[] = {{Fact::Gold, nullptr, 50}, {Fact::None}};   // 게이트: 골드 ≥ 50
+if (Arimu::gate_met_until(conds, ctx, Fact::None)) buy();
+
+const Opt* best = Arimu::pick(opts, n, ctx,                              // 스코어드 argmax
+    [](const Opt& o, const Ctx& c){ return score(o, c); }, /*min*/ 0.0f);
+```
+
+- `Arimu::SelectionContext<C, Key>` — `c.value(key, arg) -> float` 를 제공하는 컨텍스트 개념(concept).
+- `Arimu::Cond<Key>{key, arg, min}` + `gate_met` / `gate_met_until` — all-pass 불리언 게이트(센티넬 Key는 호출자 주입).
+- `Arimu::pick(opts, n, ctx, scoreFn, min, out)` — floor 위 argmax(결정적 strict `>`), scorer 주입.
+
+헤더-온리 · 할당 0 · 컴파일타임(익스포트 심볼 없음, ABI 무영향). `App`/`World`/`System` 미접촉이라
+ECS는 여기에 의존하지 않는다 — 완전 선택적. 자세히는 [`USAGE_FOR_AI.md` §6](USAGE_FOR_AI.md) 와 헤더 주석.
+
 ## 사용처
 
 arimu는 [`aima-framework`](https://github.com/jungminna03/aima-framework) 안에 벤더링된 ECS
