@@ -297,3 +297,27 @@ App / World API you call directly (mostly in `Build` and `Main`):
   `app.Tick(sceneIndex, frameDt)` — advance one frame; call once per frame from YOUR loop.
 - `world.InsertResource<T>(args...)`, `world.GetResource<T>()`, `world.HasResource<T>()`,
   `world.Registry()` (raw EnTT, for Build-time spawning).
+
+## 6. `arimu/Select.hpp` — selection-under-context (optional utility)
+
+A small, **ECS-independent** header (it never touches `App`/`World`/`System`) for a pattern that
+recurs across gameplay systems: pick or gate an option by reading *facts* from a *context*, where
+the only real difference between a skill bid, a dialogue gate, and a quest turn-in is the **scope**
+of the context a fact is read from (an entity's local components vs a world-global store). It hides
+that scope behind one keyed accessor, so all of them become the same call with a different context.
+
+You provide: a `Key` type (usually an `enum class` of facts), a `Context` type with a
+`float value(Key, const char* arg = nullptr) const` accessor, and — for scoring — an options table +
+a scorer lambda. The header supplies the machinery:
+
+- `Arimu::SelectionContext<C, Key>` — concept: `C` resolves a `Key` (+ optional arg) to a `float`.
+- `Arimu::Cond<Key>{key, arg, min}` — one declarative condition row (`value(key,arg) >= min`).
+- `Arimu::cond_met` / `gate_met(conds, n, ctx)` / `gate_met_until(conds, ctx, terminator)` —
+  all-pass boolean gates (counted range, or sentinel-terminated with a caller-supplied terminator Key).
+- `Arimu::pick(opts, n, ctx, scoreFn, min_score, out=nullptr)` — argmax above a floor, strict `>`
+  (deterministic first-wins tie-break); the scorer is injected as a callable so capability masks /
+  utility curves / per-actor weights stay entirely game-side.
+
+Header-only, allocation-free, compile-time (inline templates — no exported symbols, no ABI surface).
+Requires C++20 (already mandated). See the file header for a worked example. Entirely optional; the
+ECS does not depend on it.
